@@ -86,23 +86,20 @@ def getMessageFromLocalSNSEvent():
 
 #Get file in S3 that contains API Key and return the first line which should be the key
 def getS3SlackToken():
-    #Check to see if file exists in the S3 bucket   
+    # #Check to see if file exists in the S3 bucket   
     s3resource = boto3.resource('s3', config=Config(signature_version='s3v4'))
-    # s3_client = boto3.client('s3', config=Config(signature_version='s3v4'))
-    exists = False
+    # # s3_client = boto3.client('s3', config=Config(signature_version='s3v4'))
+    # exists = False
 
-    try:
-        s3resource.Object('adrian-efiles-for-lambda', 'token.txt').load()
-    except botocore.exceptions.ClientError as e:
-        if e.response['Error']['Code'] == "404":
-            exists = False
-        else:
-            print 'There was an exception testing for file existence'
-            print e
-            raise e 
-    else:
-        exists = True
-    # print('Does the file in AWS S3 exist?: {}'.format(exists))
+    # try:
+    #     s3resource.Object('adrian-efiles-for-lambda', 'token.txt').load()
+    #     exists = True
+    # except botocore.exceptions.ClientError as e:
+    #     exists = False
+    #     print 'There was an exception testing for file existence'
+    #     print e
+    #     raise e 
+    # # print('Does the file in AWS S3 exist?: {}'.format(exists))
     try:
         s3resource.meta.client.download_file('adrian-efiles-for-lambda', 'token.txt', '/tmp/token.txt')
     except Exception as e:
