@@ -2,22 +2,26 @@ from slacker import Slacker
 import botocore
 from botocore.client import Config
 import boto3
-
+import json
 
 def lambda_handler(event, context):
 
     if context == 'local':
         print "local Function logic Begins"
+        # message = 'Slack Test from Adrian'
+        message = getMessageFromLocalSNSEvent()
         token = getLocalSlackToken()
     else:
         print "Lambda Function Begins"
+        message = getMessageFromSNSEvent(event)
         token = getS3SlackToken()
 
     slack = Slacker(token)
 
     # Send a message to #general channel...nope, use the slackapitest channel 
     # slack.chat.post_message('#slackapitest', 'Hello fellow Slackers and Study Gurus!')
-    slack.chat.post_message('#slackapitest', 'Slack Test from Adrian')
+    # message = 'Slack Test from Adrian'
+    slack.chat.post_message('#slackapitest', message)
 
     # Get users list
     #response = slack.users.list()
@@ -30,6 +34,54 @@ def lambda_handler(event, context):
 def getLocalSlackToken():
     tokenFile = open("token.txt", "r")
     return tokenFile.readline()
+
+
+def getMessageFromSNSEvent(event):
+    messageInEvent = event['Records'][0]['Sns']['Message']
+    # print('messageInEvent = '.format(messageInEvent))
+    return messageInEvent
+
+
+def getMessageFromLocalSNSEvent():
+    SNSEventObject = {
+        "Records": [
+            {
+              "EventVersion": "1.0",
+              "EventSubscriptionArn": "arn:aws:sns:EXAMPLE",
+              "EventSource": "aws:sns",
+              "Sns": {
+                "SignatureVersion": "1",
+                "Timestamp": "1970-01-01T00:00:00.000Z",
+                "Signature": "EXAMPLE",
+                "SigningCertUrl": "EXAMPLE",
+                "MessageId": "95df01b4-ee98-5cb9-9903-4c221d41eb5e",
+                "Message": "Hello from local SNS! Object",
+                "MessageAttributes": {
+                  "Test": {
+                    "Type": "String",
+                    "Value": "TestString"
+                  },
+                  "TestBinary": {
+                    "Type": "Binary",
+                    "Value": "TestBinary"
+                  }
+                },
+                "Type": "Notification",
+                "UnsubscribeUrl": "EXAMPLE",
+                "TopicArn": "arn:aws:sns:EXAMPLE",
+                "Subject": "TestInvoke"
+              }
+            }
+          ]
+        }
+
+    event = SNSEventObject
+    # SNSEventFile = open("SNSEvent.txt", "r")
+    # event_string = SNSEventFile.read().splitlines()
+    # event = json.load(event_string)
+    messageInEvent = event['Records'][0]['Sns']['Message']
+    print('messageInEvent = {}'.format(messageInEvent))
+    return messageInEvent
 
 
 #Get file in S3 that contains API Key and return the first line which should be the key
